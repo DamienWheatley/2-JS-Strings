@@ -1,8 +1,11 @@
+const moment = require('moment');
+
+//Create class to contain books and allow selection of unique properties
 class Book {
     constructor(publicationDate,title,author){
-        this.publicationDate = shortenDate(publicationDate);
-        this.title = truncateTitle(title);
-        this.author = truncateAuthor(author);
+        this.publicationDate = formatDate(publicationDate);
+        this.title = formatTitle(title);
+        this.author = formatAuthor(author);
     }
 }
 
@@ -11,29 +14,32 @@ const string = `Publication Date,Title,Authors
 01/08/1996,A Game of Thrones,George Raymond Martin
 21/06/2003,Harry Potter and the Order of the Phoenix,Joanne Rowling`;
 
-function truncate(string, maxLength){
-    if(string.length > maxLength){
-        shortendString = string.substring(0,maxLength)+"... | ";
-        return shortendString;
+//shortens "Publication Date" to "Pub Date" and changes date format to DD MMM YYYY, then adds padding
+function formatDate(date){
+    if(date.length > 11){
+        pubDate = 'Pub Date';
+        return padLeft(padRight(pubDate, 12), 13);
     } else {
-        return string;
-    }
-}
-
-function truncateTitle(title) {
-    return truncate(title, 26);
-}
-
-function truncateAuthor(author){
-    return truncate(author, 18);
-}
-
-function shortenDate(date){
-    if(date.length > 10){
-        date = 'Pub Date';
-        return date;
-    } else {
-        return date;
+        function convertDateFormat(date){
+            let dates = [];
+            let splitDatesArray = date.split('/'||'-');
+        
+            splitDatesArray.forEach(splitDates => {
+                let splitDate = splitDates.split(",");
+                dates.push(splitDate);
+            })
+            
+            let day = dates[0];
+            let month = dates[1];
+            let year = dates[2];
+        
+            let mmDDyyyy = month + '/' + day + '/' + year;
+        
+            return mmDDyyyy;
+        }
+        let mmDDyyyy = convertDateFormat(date);
+        let formattedDate = moment(mmDDyyyy).format('DD MMM YYYY');
+        return padLeft(padRight(formattedDate, 12), 13);
     }
 }
 
@@ -53,7 +59,6 @@ let books = splitCSVarray(string);
 let bookClass = [];
 
 function createBook(books){
-
     for(i = 0; i <= books[0].length; i++){
         let book = books[i];
         
@@ -66,20 +71,50 @@ function createBook(books){
     }
 }
 
+function truncate(string, maxLength){
+    if(string.length > maxLength){
+        shortendString = string.substring(0,maxLength)+"...";
+        return shortendString;
+    } else {
+        return string;
+    }
+}
+
+function padLeft(string, padding){
+    return string.padStart(padding, ' ');
+}
+
+function padRight(string, padding){
+    return string.padEnd(padding, ' ');
+}
+
+function formatTitle(title) {
+    if(title.length > 26){
+        return truncate(title, 26);
+    } else {
+        return padLeft(title, 29);
+    }    
+}
+
+function formatAuthor(author){
+    if(author.length > 23){
+        return truncate(author, 18);
+    } else if(author === 'Authors'){
+        return padRight(author, 21);
+    } else {
+        return padLeft(author, 21);
+    }
+}
 
 function displayBooks() {
+    let headers = ('|' + bookClass[0].publicationDate + '|' + bookClass[0].title.padEnd(30,' ') + ' | ' + bookClass[0].author + (' |'));
+    let spacer = ('|' + '='.repeat(headers.length - 2) + '|');
+    console.log(`${headers}\n${spacer}`);
     for(i = 1; i <= books.length - 1; i++) {
-        console.log(displayedBooks = ('|' + bookClass[i].publicationDate.padStart(11,' ').padEnd(12,' ') + '| ' + bookClass[i].title.padStart(29,' ') + ' | ' + bookClass[i].author));
+        console.log('|' + bookClass[i].publicationDate + '| ' + bookClass[i].title + ' | ' + bookClass[i].author + ' |');
     }
 }
 
 createBook(books);
 
-let headers = ('|' + bookClass[0].publicationDate.padStart(9, ' ').padEnd(12, ' ') + '|' + bookClass[0].title.padStart(30,' ') + ' | ' + bookClass[0].author.padEnd(22,' ') + ('|'));
-let spacer = ('|' + '='.repeat(headers.length - 2) + '|');
-let row1 = displayBooks();
-
-
-// let row3 = ('|' + extractDate(booksCSVarray[6]).padStart(11,' ').padEnd(12,' ') + '| ' + truncateTitle(booksCSVarray[7]) + booksCSVarray[8].padStart(21,' ') + ' |');
-
-console.log(`${headers}\n${spacer}\n${row1}`);
+displayBooks();
